@@ -1,0 +1,46 @@
+/**
+ * Update Google Sheet with events from Google Calendar.
+ */
+function updateCalendarEvents() {
+  const calendarId = 'your-calendar-id@example.com';
+  const sheetId = 'your-spreadsheet-id';
+
+  try {
+    const calendar = CalendarApp.getCalendarById(calendarId);
+    const sheet = SpreadsheetApp.openById(sheetId).getActiveSheet();
+
+    // Define time frame for fetching events.
+    const now = new Date();
+    const oneWeekInMillis = 7 * 24 * 60 * 60 * 1000;
+    const endOfWeek = new Date(now.getTime() + oneWeekInMillis);
+
+    const events = calendar.getEvents(now, endOfWeek);
+
+    sheet.clear();
+
+    const headerRow = ['Event Name', 'Start Time', 'End Time'];
+    sheet.appendRow(headerRow);
+
+    for (const event of events) {
+      const rowData = [event.getTitle(), event.getStartTime(), event.getEndTime()];
+      sheet.appendRow(rowData);
+    }
+  } catch (error) {
+    Logger.log('Error updating calendar events: ' + error.toString());
+  }
+}
+
+/**
+ * Set up a daily trigger for updating calendar events.
+ */
+function createTrigger() {
+  try {
+    ScriptApp.newTrigger('updateCalendarEvents')
+      .timeBased()
+      .atHour(0)
+      .everyDays(1)
+      .create();
+  } catch (error) {
+    Logger.log('Error creating trigger: ' + error.toString());
+  }
+}
